@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyper Nikki System Reborn</title>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        body { padding: 10px; background-color: #ffffff; color: #000; font-family: "MS PGothic", sans-serif; position: relative; }
+        a { color: #0000ee; text-decoration: underline; cursor: pointer; }
+        a:visited { color: #551a8b; }
+        
+        h2 {
+            font-size: 1.5em; font-weight: bold;
+            border-left: 10px solid #556b2f; padding-left: 10px;
+            border-bottom: 1px dotted #ccc; margin-top:  0px; margin-bottom: 5px;
+            line-height: 1.2;
+        }
+        h3.new { 
+            background-color: #eeeeee; padding: 5px 10px; 
+            border-bottom: 1px dotted #999; 
+            font-size: 1.3em; font-weight: bold; margin-top: 15px;
+        }
+        .diary-column h4 {
+            font-size: 1.15em; font-weight: bold;
+            margin-left: -1em; margin-top: 1em; margin-bottom: 0.5em;
+        }
+        div.section { margin-left: 1.5em; line-height: 1.6; margin-bottom: 1em; font-size: 1.0em; }
+
+        .diary-entry {
+            margin-bottom: 40px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        
+        /* 既読リンクの色設定 */
+        .index-list a:visited,
+        .list-group-item:visited,
+        .diary-entry h2 a:visited,
+        .diary-entry h3 a:visited,
+        .diary-entry h4 a:visited {
+            color: #999999;
+        }
+
+        .pim-container { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .pim-box { margin-bottom: 10px; }
+        .pim-header { font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 5px; }
+        .pim-list { padding-left: 20px; margin: 0; font-size: 0.9em; }
+        
+        .middle-area { margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 4px; background-color: #f8f8f8; }
+        .calendar-table { width: 100%; background: #fff; font-size: 0.9em; }
+        .calendar-table th { text-align: center; background: #e0e0ff; }
+        .calendar-table td { text-align: center; border: 1px solid #ddd; }
+        .calendar-table caption { text-align: center; color: #333; padding-bottom: 5px; }
+        
+        /* カレンダーの日付セル内のリンク */
+        .calendar-table td a {
+            color: #337ab7;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+        }
+        /* カレンダー上部（キャプション）のリンク */
+        .calendar-table caption a {
+            display: inline;
+            text-decoration: none;
+            color: #337ab7;
+        }
+
+        .calendar-table a:visited { color: #999999; background-color: #f9f9f9; }
+        .calendar-table a:hover { color: #23527c; text-decoration: underline; background-color: #eee; }
+        
+        /* 選択中の日を最優先で青背景にする */
+        .calendar-table td a.active-day,
+        .calendar-table td a.active-day:visited { 
+            color: #ffffff !important; 
+            background-color: #337ab7 !important; 
+            font-weight: bold; 
+        }
+        
+        .nav-header { color: #0000ee; margin-bottom: 5px; font-size: 0.9em; font-weight: bold; }
+        .nav-desc { font-size: 0.8em; margin-bottom: 5px; color: #666; }
+        .nav-form-row { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; }
+        
+        .index-column { background-color: #f9f9f9; border-left: 1px solid #ccc; padding: 10px; font-size: 0.9em; }
+        .index-list { list-style: none; padding-left: 0; }
+        .index-item { margin-bottom: 10px; }
+        .index-titles { padding-left: 15px; list-style: disc; color: #551a8b; margin-top: 2px; }
+        .index-titles li { font-size: 0.9em; }
+
+        table.hnf-table { border: 2px solid #666; border-collapse: collapse; margin: 10px 0; font-size: 0.9em; background-color: #fff; width: auto; max-width: 100%; }
+        table.hnf-table thead th, table.hnf-table thead td { border: 1px solid #999; padding: 5px 8px; background-color: #d0d0e0; color: #000; font-weight: bold; text-align: center; vertical-align: middle; }
+        table.hnf-table tbody td, table.hnf-table tbody th { border: 1px solid #999; padding: 5px 8px; vertical-align: top; }
+        table.hnf-table caption { text-align: center; color: #333; font-weight: bold; padding-bottom: 5px; }
+        table.hnf-table .hidden { display: none; }
+        blockquote { border-left: 4px solid #ccc; padding-left: 10px; color: #555; }
+        
+        .search-highlight { background-color: #ff9; font-weight: bold; }
+        .hnf-dt { font-weight: bold; margin-top: 10px; color: #333; }
+        .hnf-dd { margin-left: 20px; margin-bottom: 5px; }
+
+        .settings-btn { position: absolute; top: 5px; right: 15px; font-size: 1.5em; color: #999; cursor: pointer; z-index: 1000; background: rgba(255,255,255,0.8); padding: 2px 5px; border-radius: 4px; }
+        .settings-btn:hover { color: #333; background: #eee; }
+
+        .go-top { position: fixed; bottom: 20px; right: 20px; z-index: 999; background-color: #556b2f; color: #fff; width: 50px; height: 50px; border-radius: 50%; text-align: center; line-height: 50px; font-size: 20px; cursor: pointer; opacity: 0.7; transition: opacity 0.3s; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
+        .go-top:hover { opacity: 1; background-color: #445a20; }
+
+        .modal-mask { position: fixed; z-index: 9998; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; transition: opacity 0.3s ease; justify-content: center; align-items: center; }
+        .modal-container { width: 500px; margin: 0px auto; padding: 20px 30px; background-color: #fff; border-radius: 2px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33); transition: all 0.3s ease; max-height: 90vh; overflow-y: auto; }
+        .modal-header h3 { margin-top: 0; color: #556b2f; border-bottom: 1px solid #ccc; padding-bottom: 10px;}
+        .modal-body { margin: 20px 0; }
+        .admin-section { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #ccc; background-color: #fff0f0; padding: 10px; }
+
+        @media (max-width: 767px) {
+            .diary-entry { padding: 10px; margin-bottom: 20px; }
+            body { padding: 5px; }
+            .col-sm-3, .col-sm-4, .col-sm-8, .col-sm-9 { width: 100% !important; float: none !important; padding-left: 0; padding-right: 0; }
+            .index-column { margin-top: 20px; border-left: none; border-top: 1px solid #ccc; background-color: #fff; }
+            .pim-box { margin-bottom: 15px; border-bottom: 1px dashed #ccc; }
+            .middle-area { padding: 5px; }
+            .nav-form-row form { display: flex; flex-wrap: wrap; gap: 5px; }
+            .nav-form-row select { margin-bottom: 5px; }
+            .form-inline .form-group { display: inline-block; margin-bottom: 0; vertical-align: middle; }
+            .form-control { display: inline-block; width: auto; vertical-align: middle; }
+            h2 { font-size: 1.6em; }
+            img { max-width: 100%; height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container" @click="handleGlobalClick">
+
+    <div v-if="showPostModal" class="modal-mask">
+        <div class="modal-container" style="width: 800px; max-width: 95%;">
+            <div class="modal-header"><h3>日記を書く</h3></div>
+            <div class="modal-body">
+                <div v-if="postMessage" :class="'alert alert-' + (postStatus==='success'?'success':'danger')">{{ postMessage }}</div>
+                <div class="form-group"><label>日付</label><input type="date" v-model="postDate" class="form-control"></div>
+                <div class="form-group"><label>カテゴリ</label><input type="text" v-model="postCategory" class="form-control" placeholder="例: 開発日記"></div>
+                <div class="form-group"><label>本文 (HNF形式)</label><textarea v-model="postContent" class="form-control" rows="15" style="font-family: monospace;"></textarea><p class="help-block small">NEW タイトル, LNEW URL タイトル, PRE... 等が使えます</p></div>
+                <div class="form-group"><label>投稿用パスワード</label><input type="password" v-model="postPassword" class="form-control"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" @click="showPostModal = false">キャンセル</button>
+                <button class="btn btn-primary" @click="submitEntry" :disabled="processing">投稿する</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-btn" @click="toggleConfig" title="設定 / 管理"><span class="glyphicon glyphicon-cog"></span></div>
+    <div v-show="showScrollTop" class="go-top" @click="scrollToTop" title="一番上へ戻る"><span class="glyphicon glyphicon-chevron-up"></span></div>
+
+    <div v-if="parts.head" class="conf-content" v-html="parts.head"></div>
+    <div v-else class="text-muted"><small>(head.txt not found)</small></div>
+
+    <div v-if="showConfig" class="modal-mask">
+        <div class="modal-container">
+            <div class="modal-header"><h3>設定 / 管理ツール</h3></div>
+            <div class="modal-body">
+                <div class="form-group well">
+                    <label>現在のRURI (読者コード)</label>
+                    <div class="text-center" style="margin-bottom:10px;">
+                        <h4 style="font-weight:bold; font-family:monospace; color:#337ab7;">{{ currentRuriValue || '(未設定)' }}</h4>
+                        <div v-if="isAdmin"><span class="label label-success">管理者 (Admin)</span></div>
+                        <div v-else-if="isValidUser"><span class="label label-info">登録ユーザー (Registered)</span></div>
+                        <div v-else><span class="label label-default">ゲスト (Guest)</span></div>
+                    </div>
+                    <button class="btn btn-default btn-sm btn-block" type="button" @click="copyRuri"><span class="glyphicon glyphicon-copy"></span> クリップボードにコピー</button>
+                    <div v-if="isAdmin" style="margin-top: 10px;">
+                        <button class="btn btn-primary btn-block" @click="openPostModal"><span class="glyphicon glyphicon-pencil"></span> 日記を書く</button>
+                    </div>
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label><span class="glyphicon glyphicon-log-in"></span> コードを入力して認証</label>
+                    <div class="input-group">
+                        <input v-model="inputRuri" class="form-control" placeholder="登録済みのRURIを入力...">
+                        <span class="input-group-btn"><button @click="loginRuri" class="btn btn-primary" :disabled="processing">認証</button></span>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:20px;">
+                    <label><span class="glyphicon glyphicon-refresh"></span> 新しいコードを発行</label>
+                    <button @click="regenerateRuri" class="btn btn-default btn-danger" :disabled="processing">RURIを再発行する</button>
+                </div>
+                <div v-if="isAdmin" class="admin-section">
+                    <h4 style="margin-top:0; font-weight:bold; color:#a00;">管理者メニュー</h4>
+                    <button @click="clearCache" class="btn btn-warning btn-block" :disabled="processing"><span class="glyphicon glyphicon-trash"></span> キャッシュ全消去</button>
+                    <div style="margin-top:5px;"></div>
+                    <button @click="rebuildSearch" class="btn btn-info btn-block" :disabled="processing"><span class="glyphicon glyphicon-search"></span> 検索インデックス更新</button>
+                    <div v-if="adminMessage" class="alert alert-info" style="margin-top:10px; padding:5px;">{{ adminMessage }}</div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-default" @click="showConfig = false">閉じる</button></div>
+        </div>
+    </div>
+
+    <div class="row pim-container">
+        <div class="col-sm-4 pim-box"><div class="pim-header">予定</div><ul class="pim-list"><li v-for="(s, idx) in pim.schedule" :key="idx"> <strong>{{ s.date }}</strong> <span :style="s.style">{{ s.content }}</span></li><li v-if="!pim.schedule.length">予定なし</li></ul></div>
+        <div class="col-sm-4 pim-box"><div class="pim-header">TODO</div><ul class="pim-list"><li v-for="t in pim.todo" :key="t.content"><span class="label label-warning" v-if="t.priority >= 50">{{ t.priority }}</span><span class="label label-default" v-else>{{ t.priority }}</span> {{ t.content }}</li></ul></div>
+        <div class="col-sm-4 pim-box"><div class="pim-header">リンク</div><ul class="pim-list"><li v-for="l in pim.links" :key="l.url"><a :href="l.url" :target="l.url.startsWith('#') ? '' : '_blank'">{{ l.title }}</a></li></ul></div>
+    </div>
+
+    <div class="row middle-area">
+        <div class="col-sm-4">
+            <table class="calendar-table">
+                <caption>
+                    <a @click.prevent="changeMonth(-1)" href="#" style="margin-right: 10px; text-decoration: underline;">&lt;</a>
+                    <a href="#" @click.prevent="fetchMonthDiary" style="color:inherit; text-decoration:underline; font-weight:bold;">{{ calendarYear }}年{{ calendarMonth }}月</a>
+                    <a @click.prevent="changeMonth(1)" href="#" style="margin-left: 10px; text-decoration: underline;">&gt;</a>
+                </caption>
+                <tr><th class="color_red">日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th style="color:blue">土</th></tr>
+                <tr v-for="week in calendarDays">
+                    <td v-for="(day, dIdx) in week" :style="getDayStyle(day, dIdx)">
+                        <a v-if="day && availableDays.has(day)" :href="getDayHref(calendarYear, calendarMonth, day)" @click.stop :class="{ 'active-day': isSelectedDay(day) }" style="font-weight:bold; text-decoration:underline;">{{ day }}</a>
+                        <span v-else>{{ day }}</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-sm-8">
+            <div class="nav-header">日記全文検索システム</div>
+            <div class="nav-desc">過去の日記からキーワード検索を行います。<a href="#" @click.prevent="toggleSearchHelp" style="margin-left:5px;"><span class="glyphicon glyphicon-question-sign"></span> 検索ヘルプ</a></div>
+            <div v-if="showSearchHelp" class="alert alert-info" style="margin-top:5px; margin-bottom:10px; padding:10px; font-size:0.9em;">
+                <button type="button" class="close" @click="toggleSearchHelp">&times;</button>
+                <strong><span class="glyphicon glyphicon-info-sign"></span> 検索のヒント:</strong>
+                <ul style="padding-left: 20px; margin-top:5px; margin-bottom:0;">
+                    <li><strong>AND検索:</strong> スペース区切り (例: <code>札幌 ラーメン</code>)</li>
+                    <li><strong>OR検索:</strong> 間に <code>OR</code> (例: <code>うどん OR そば</code>)</li>
+                </ul>
+            </div>
+            <form @submit.prevent="performSearch" class="form-inline">
+                <strong>検索式:</strong>
+                <div class="form-group"><input type="text" v-model="searchQuery" class="form-control input-sm" style="width: 200px;" placeholder="キーワード"></div>
+                <div class="checkbox" style="margin-left: 5px; margin-right: 5px;"><label style="font-size: 0.9em;"><input type="checkbox" v-model="isCaseSensitive"> 区別</label></div>
+                <button type="submit" class="btn btn-default btn-sm">Search!</button>
+            </form>
+            <div class="nav-form-row">
+                <form class="form-inline" @submit.prevent="goDateRange">
+                    <div class="form-group"><select v-model="navYear" class="form-control input-sm"><option v-for="y in yearList" :value="y">{{ y }}年</option></select></div>
+                    <div class="form-group"><select v-model="navMonth" class="form-control input-sm"><option v-for="m in 12" :value="m">{{ String(m).padStart(2, '0') }}</option></select></div>
+                    <div class="form-group"><select v-model="navRange" class="form-control input-sm"><option value="1">01～10日</option><option value="11">11～20日</option><option value="21">21～31日</option><option value="all">全て(01～31日)</option></select></div>
+                    <button type="submit" class="btn btn-default btn-sm">Go!</button>
+                    <span class="pull-right"><a @click.prevent="jumpToToday" href="#">[今日]</a></span>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-9 diary-column">
+            <div v-if="loading" class="text-center">Loading...</div>
+            <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
+            <div v-else-if="viewMode === 'category'" class="category-results">
+                <div class="alert alert-success"><button type="button" class="close" @click="clearCategorySearch">&times;</button><strong>カテゴリ「{{ currentCategory }}」</strong> ({{ categoryResults.length }}件)</div>
+                <div class="list-group"><a v-for="(item, idx) in categoryResults" :key="idx" :href="'#' + item.date.replace(/\//g, '')" @click.stop class="list-group-item"><span class="badge">{{ item.date }}</span>{{ item.title }}</a></div>
+                <div class="text-center" style="margin-top:20px;"><button class="btn btn-default" @click="clearCategorySearch">戻る</button></div>
+            </div>
+            <div v-else-if="viewMode === 'search'" class="search-results">
+                <div class="alert alert-info"><button type="button" class="close" @click="clearSearch">&times;</button><strong>検索結果: 「{{ lastSearchQuery }}」</strong> ({{ searchResults.length }}件)</div>
+                <div class="list-group">
+                    <a v-for="(item, idx) in searchResults" :key="idx" :href="'#' + item.anchor_id" @click.stop class="list-group-item">
+                        <h4 class="list-group-item-heading" style="font-size:1.1em; font-weight:bold; margin-bottom:5px;"><span class="badge pull-right">{{ item.date }}</span>{{ item.title || '(タイトルなし)' }}</h4>
+                        <p class="list-group-item-text text-muted" v-html="item.fragment" style="font-size:0.9em;"></p>
+                    </a>
+                </div>
+                <div class="text-center" style="margin-top:20px;"><button class="btn btn-default" @click="clearSearch">戻る</button></div>
+            </div>
+            <div v-else v-for="(diary, dIdx) in diaryList" :key="dIdx" class="diary-entry">
+                <h2>
+                    <a :id="diary.date.replace(/\//g, '')" :href="'#' + diary.date.replace(/\//g, '')">{{ diary.date }}({{ diary.week_day }})</a>
+                    <span class="small" v-if="diary.meta.old_calendar"> 旧暦 [{{ diary.meta.old_calendar }}]</span>
+                    <span class="small" style="font-weight:bold; color:#00f; margin-left:5px;"><a :href="'#n' + diary.date.split('/')[1] + diary.date.split('/')[2]">[n年日記]</a></span>
+                    <span class="small" style="font-weight:bold; color:#00f; margin-left:5px;"><a :href="getNnhUrl(diary.date)" target="_blank">今日は何の日</a></span>
+                </h2>
+                <div class="text-muted small">
+                    <span v-if="diary.meta.TENKI">[天気:{{ diary.meta.TENKI }}] </span><span v-if="diary.meta.BASHO">({{ diary.meta.BASHO }}) </span><span v-if="diary.meta.TAIJU">体重:{{ diary.meta.TAIJU }}Kg </span><span v-if="diary.meta.TAION">体温:{{ diary.meta.TAION }}度 </span><span v-if="diary.meta.SUIMIN">睡眠:{{ diary.meta.SUIMIN }}時間 </span><span v-if="diary.meta.HOSU">{{ diary.meta.HOSU }}歩</span><span v-if="diary.meta.BGM"> BGM:{{ diary.meta.BGM }}</span><span v-if="diary.meta.HON"> 読書:{{ diary.meta.HON }}</span><span v-if="diary.meta.KITAKU"> 帰宅時間:{{ diary.meta.KITAKU }}</span><span v-if="diary.meta.WALK"> 散歩:{{ diary.meta.WALK }}</span><span v-if="diary.meta.RUN"> ジョギング:{{ diary.meta.RUN }}</span><span v-if="diary.meta.SAKE"> アルコール:{{ diary.meta.SAKE }}</span>
+                </div>
+                <div v-if="diary.meta.YOTEI" class="schedule-in-body alert alert-info" style="padding: 10px; margin-bottom: 15px;"><strong>予定:</strong> <span v-html="renderMarkdown(diary.meta.YOTEI)"></span></div>
+                <div v-for="(section, sIdx) in diary.sections" :key="sIdx">
+                    <h3 class="new">
+                        <span style="font-weight:bold;">
+                            <a :id="section.anchor_id" :href="'#' + section.anchor_id" style="color:inherit; text-decoration:none;">#{{ getSectionLabel(diary, sIdx) }}</a>
+                        </span>
+                        <span v-if="section.category"><span v-for="cat in section.category.split(/\s+/)" :key="cat">[<a :href="'#@' + cat">{{ cat }}</a>]</span></span>
+                        <strong v-if="section.url"><a :href="section.url">{{ section.title }}</a></strong><strong v-else>{{ section.title }}</strong>
+                        <span v-if="section.group" class="pull-right label label-danger">GRP:{{ section.group }}</span>
+                    </h3>
+                    <div class="section">
+                        <div v-for="(item, iIdx) in section.items" :key="iIdx">
+                            <div v-if="item.type === 'text'" v-html="renderMarkdown(item.content)"></div>
+                            <recursive-list v-if="item.type === 'ul' || item.type === 'ol'" :type="item.type" :items="item.items"></recursive-list>
+                            <div v-if="item.type === 'dt'" class="hnf-dt"><span style="color:#556b2f"></span> <span v-html="renderMarkdown(item.content)"></span></div>
+                            <div v-if="item.type === 'dd'" class="hnf-dd"><span v-html="renderMarkdown(item.content)"></span></div>
+                            <blockquote v-if="item.type === 'blockquote'"><pre>{{ item.content }}</pre></blockquote>
+                            <pre v-if="item.type === 'pre'">{{ item.content }}</pre>
+                            <hnf-table v-if="item.type === 'table'" :caption="item.caption" :rows="item.rows"></hnf-table>
+                            <div v-if="item.type === 'image'" :style="item.style ? item.style + ' overflow:hidden;' : ''"><img :src="item.src" :alt="item.alt" class="img-responsive" :style="item.style"></div>
+                            <div v-if="item.type === 'sub_header' || item.type === 'link_sub_header'"><h4><a :id="item.anchor_id" :href="'#' + item.anchor_id" style="text-decoration:none;"><span style="color:#556b2f">@</span></a> <a v-if="item.url" :href="item.url">{{ item.title }}</a><span v-else>{{ item.title }}</span></h4></div>
+                            <div v-if="item.type === 'raw'" v-html="item.content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3 index-column">
+            <h4 style="color:#990000; font-weight:bold;">最近の日記</h4>
+            <ul class="index-list">
+                <li v-for="idx in indexList" :key="idx.date" class="index-item">
+                    <a :href="'#' + String(idx.year) + String(idx.month).padStart(2,'0') + String(idx.day).padStart(2,'0')" @click.stop>{{ idx.year }}年{{ idx.month }}月{{ idx.day }}日</a>
+                    <ul class="index-titles" v-if="idx.titles && idx.titles.length"><li v-for="t in idx.titles" :key="t.anchor_id"><a :href="'#' + t.anchor_id" @click.stop>{{ t.title }}</a></li></ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+    <div v-if="parts.foot" class="conf-content" v-html="parts.foot"></div>
+</div>
+
+<script>
+    const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+    const renderMarkdown = (text) => DOMPurify.sanitize(marked.parse(text));
+
+    const app = createApp({
+        setup() {
+            const currentDate = ref(new Date()); 
+            const calendarYear = ref(currentDate.value.getFullYear());
+            const calendarMonth = ref(currentDate.value.getMonth() + 1);
+            const navYear = ref(currentDate.value.getFullYear());
+            const navMonth = ref(currentDate.value.getMonth() + 1);
+            const getRangeFromDay = (d) => d <= 10 ? "1" : (d <= 20 ? "11" : "21");
+            const navRange = ref(getRangeFromDay(currentDate.value.getDate()));
+            
+            const yearList = ref([]);
+            const diaryList = ref([]);
+            const indexList = ref([]);
+            const pim = ref({ schedule: [], todo: [], links: [] });
+            const parts = ref({ head: '', foot: '' });
+
+            const viewMode = ref('diary');
+            const categoryResults = ref([]);
+            const currentCategory = ref('');
+            const searchQuery = ref('');
+            const isCaseSensitive = ref(false);
+            const lastSearchQuery = ref('');
+            const searchResults = ref([]);
+            const loading = ref(false);
+            const error = ref(null);
+            
+            const showConfig = ref(false);
+            const inputRuri = ref('');
+            const currentRuriValue = ref(''); 
+            const processing = ref(false);
+            const adminMessage = ref('');
+            const isAdmin = ref(false);
+            const isValidUser = ref(false);
+            const showPostModal = ref(false);
+            const postDate = ref(new Date().toISOString().slice(0, 10));
+            const postCategory = ref('');
+            const postContent = ref("NEW タイトル\nここに本文");
+            const postPassword = ref('');
+            const postMessage = ref('');
+            const postStatus = ref('');
+
+            const availableDays = ref(new Set());
+            const showScrollTop = ref(false);
+            const showSearchHelp = ref(false);
+            const toggleSearchHelp = () => showSearchHelp.value = !showSearchHelp.value;
+
+            const pad = (n) => String(n).padStart(2, '0');
+            const getDayHref = (year, month, day) => `#${year}${pad(month)}${pad(day)}`;
+
+            const calendarDays = computed(() => {
+                const y = calendarYear.value;
+                const m = calendarMonth.value - 1;
+                const first = new Date(y, m, 1).getDay();
+                const last = new Date(y, m + 1, 0).getDate();
+                const weeks = [];
+                let week = Array(7).fill(null);
+                let day = 1;
+                for (let i = first; i < 7; i++) week[i] = day++;
+                weeks.push(week);
+                while (day <= last) {
+                    week = Array(7).fill(null);
+                    for (let i = 0; i < 7 && day <= last; i++) week[i] = day++;
+                    weeks.push(week);
+                }
+                return weeks;
+            });
+
+            const isSelectedDay = (day) => {
+                if (!diaryList.value || diaryList.value.length === 0) return false;
+                const targetVal = calendarYear.value * 10000 + calendarMonth.value * 100 + day;
+                return diaryList.value.some(d => {
+                    const parts = d.date.split('/');
+                    if(parts.length !== 3) return false;
+                    const dVal = parseInt(parts[0]) * 10000 + parseInt(parts[1]) * 100 + parseInt(parts[2]);
+                    return dVal === targetVal;
+                });
+            };
+
+            const getSectionLabel = (diary, index) => {
+                const section = diary.sections[index];
+                if (section.group) return '*';
+                const match = section.anchor_id.match(/p(\d+)$/);
+                return match ? match[1] : index + 1;
+            };
+
+            const fetchPimAndParts = async () => {
+                 const t = new Date().getTime();
+                 fetch(`./api/pim?t=${t}`).then(r=>r.json()).then(d => pim.value = d);
+                 fetch(`./api/parts?t=${t}`).then(r=>r.json()).then(d => parts.value = d);
+            };
+
+            const fetchYears = async () => {
+                try {
+                    const res = await fetch('./api/years');
+                    if (res.ok) {
+                        const data = await res.json();
+                        yearList.value = (data.years && data.years.length > 0) ? data.years : [new Date().getFullYear()];
+                    }
+                } catch (e) { yearList.value = [new Date().getFullYear()]; }
+            };
+
+            const fetchRecentIndex = async () => {
+                const today = new Date();
+                try {
+                    const res = await fetch(`./api/index/${today.getFullYear()}/${pad(today.getMonth()+1)}/${pad(today.getDate())}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        indexList.value = data.index;
+                    }
+                } catch (e) { console.error(e); }
+            };
+
+            const fetchAuthStatus = async () => {
+                try {
+                    const res = await fetch('./api/auth/status');
+                    if (res.ok) {
+                        const data = await res.json();
+                        isAdmin.value = data.is_admin;
+                        isValidUser.value = data.is_valid;
+                        currentRuriValue.value = data.ruri || '未設定';
+                    }
+                } catch(e) {}
+            };
+
+            const loginRuri = async () => {
+                if (!inputRuri.value) return;
+                processing.value = true;
+                try {
+                    const res = await fetch('./api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ruri: inputRuri.value })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        alert('認証成功: ' + data.message);
+                        inputRuri.value = '';
+                        await fetchAuthStatus();
+                        location.reload();
+                    } else { alert('認証失敗: ' + data.message); }
+                } catch(e) { alert('通信エラー'); } 
+                finally { processing.value = false; }
+            };
+
+            const regenerateRuri = async () => {
+                if(!confirm('現在のRURIコードは破棄されます。よろしいですか？')) return;
+                processing.value = true;
+                try {
+                    const res = await fetch('./api/auth/regenerate', { method: 'POST' });
+                    const data = await res.json();
+                    if(res.ok) {
+                        alert('新しいコード: ' + data.ruri);
+                        await fetchAuthStatus();
+                        location.reload();
+                    }
+                } catch(e) { alert('エラー'); } 
+                finally { processing.value = false; }
+            };
+
+            const fetchCalendarAvailability = async () => {
+                const y = calendarYear.value;
+                const m = pad(calendarMonth.value); 
+                try {
+                    const res = await fetch(`./api/calendar_monthly/${y}/${m}`);
+                    if(res.ok) {
+                        const data = await res.json();
+                        availableDays.value = new Set(data.days);
+                    } else { availableDays.value = new Set(); }
+                } catch (e) { availableDays.value = new Set(); }
+            };
+
+            const syncNavWithDate = (date) => {
+                navYear.value = date.getFullYear();
+                navMonth.value = date.getMonth() + 1;
+                navRange.value = getRangeFromDay(date.getDate());
+            };
+
+            const fetchDiary = async (isSingleDay = false) => {
+                loading.value = true;
+                const y = currentDate.value.getFullYear();
+                const m = pad(currentDate.value.getMonth() + 1);
+                const d = pad(currentDate.value.getDate());
+                
+                if(calendarYear.value !== parseInt(y) || calendarMonth.value !== parseInt(m)) {
+                    calendarYear.value = parseInt(y);
+                    calendarMonth.value = parseInt(m);
+                    fetchCalendarAvailability();
+                }
+
+                try {
+                    const limitParam = isSingleDay ? '?limit=1' : '';
+                    const feedRes = await fetch(`./api/feed/${y}/${m}/${d}${limitParam}`);
+                    if (feedRes.ok) {
+                        const data = await feedRes.json();
+                        diaryList.value = data.diaries;
+                    } else { diaryList.value = []; }
+                } catch (e) { error.value = e.message; }
+                finally { loading.value = false; }
+            };
+
+            const fetchMonthDiary = async () => {
+                loading.value = true;
+                viewMode.value = 'diary';
+                const y = calendarYear.value;
+                const m = pad(calendarMonth.value);
+                navYear.value = y;
+                navMonth.value = parseInt(m);
+                navRange.value = 'all';
+
+                try {
+                    const res = await fetch(`./api/feed/${y}/${m}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        diaryList.value = data.diaries;
+                    } else { diaryList.value = []; }
+                } catch (e) { error.value = e.message; }
+                finally { loading.value = false; }
+            };
+
+            const fetchSameDayDiary = async (dateStr) => {
+                if (!dateStr) return;
+                const parts = dateStr.split('/');
+                if (parts.length !== 3) return;
+                viewMode.value = 'diary';
+                const m = parts[1];
+                const d = parts[2];
+                loading.value = true;
+                diaryList.value = [];
+                try {
+                    // ★修正: 相対パス (./) に変更
+                    const res = await fetch(`./api/same_day/${m}/${d}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        diaryList.value = data.diaries;
+                    }
+                } catch (e) { error.value = e.message; }
+                finally { loading.value = false; }
+            };
+
+            const parseAnchor = (str) => {
+                let raw = str.replace(/^#/, '');
+                
+                if (raw.startsWith('@')) {
+                    return { type: 'category', name: decodeURIComponent(raw.substring(1)) };
+                }
+
+                if (raw.startsWith('n')) {
+                     const md = raw.substring(1);
+                     if (md.length === 4) {
+                         return { type: 'n_diary', dateStr: `2000/${md.substring(0,2)}/${md.substring(2,4)}` };
+                     }
+                }
+
+                raw = raw.replace(/^d/, '');
+                if (raw.includes('#')) {
+                    const parts = raw.split('#');
+                    const start = parts[0].replace(/^d/, '');
+                    const end = parts[1].replace(/^d/, '');
+                    if (start.length === 8 && end.length === 8) {
+                        return { type: 'range', start: start, end: end };
+                    }
+                }
+                const match = raw.match(/^(\d{8})(.*)$/);
+                if (!match) return null;
+                const datePart = match[1];
+                const suffix = match[2];
+                let targetId = datePart;
+                if (suffix) {
+                    if (suffix.match(/^\d+$/)) targetId = `${datePart}p${suffix}`;
+                    else targetId = `${datePart}${suffix}`;
+                }
+                return {
+                    type: 'anchor',
+                    y: parseInt(datePart.substring(0, 4)),
+                    m: parseInt(datePart.substring(4, 6)),
+                    d: parseInt(datePart.substring(6, 8)),
+                    id: targetId
+                };
+            };
+
+            const loadDateRange = async (startStr, endStr) => {
+                loading.value = true;
+                viewMode.value = 'diary';
+                const startY = parseInt(startStr.substring(0, 4));
+                const startM = parseInt(startStr.substring(4, 6));
+                
+                calendarYear.value = startY;
+                calendarMonth.value = startM;
+                navYear.value = startY;
+                navMonth.value = startM;
+                fetchCalendarAvailability();
+
+                try {
+                    const res = await fetch(`./api/feed/${startY}/${pad(startM)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const startInt = parseInt(startStr);
+                        const endInt = parseInt(endStr);
+                        diaryList.value = data.diaries.filter(d => {
+                            const dInt = parseInt(d.date.replace(/\//g, ''));
+                            return dInt >= startInt && dInt <= endInt;
+                        });
+                    } else { diaryList.value = []; }
+                } catch (e) { error.value = e.message; }
+                finally { loading.value = false; }
+            };
+
+            const smartJump = async (y, m, d, targetId, forceSingleDay = false) => {
+                viewMode.value = 'diary';
+                const isMonthChanged = (calendarYear.value !== y || calendarMonth.value !== m);
+                calendarYear.value = y;
+                calendarMonth.value = m;
+                const newDate = new Date(y, m - 1, d);
+                currentDate.value = newDate;
+                syncNavWithDate(newDate);
+                if (isMonthChanged) await fetchCalendarAvailability();
+                
+                await fetchDiary(forceSingleDay);
+                
+                setTimeout(() => {
+                    const getEl = (id) => document.getElementById(id) || document.getElementsByName(id)[0];
+                    let el = getEl(targetId);
+                    if (!el && targetId.length > 8) el = getEl(targetId.substring(0, 8));
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 200);
+            };
+
+            const processHash = (hash) => {
+                if (!hash || hash === '#') {
+                    jumpToToday();
+                    return true;
+                }
+                const info = parseAnchor(hash);
+                if (!info) return false;
+
+                if (info.type === 'category') {
+                    searchCategory(info.name);
+                    return true;
+                } else if (info.type === 'n_diary') {
+                    fetchSameDayDiary(info.dateStr);
+                    return true;
+                } else if (info.type === 'range') {
+                    loadDateRange(info.start, info.end);
+                    return true;
+                } else {
+                    smartJump(info.y, info.m, info.d, info.id, true);
+                    return true;
+                }
+            };
+
+            const jumpToToday = async () => { 
+                viewMode.value = 'diary';
+                const newDate = new Date();
+                currentDate.value = newDate;
+                
+                const y = newDate.getFullYear();
+                const m = newDate.getMonth() + 1;
+                calendarYear.value = y;
+                calendarMonth.value = m;
+                navYear.value = y;
+                navMonth.value = m;
+                
+                fetchCalendarAvailability();
+                syncNavWithDate(newDate);
+                
+                if (window.location.hash) {
+                    history.pushState(null, null, window.location.pathname + window.location.search);
+                }
+                await fetchDiary(false);
+            };
+
+            const handleGlobalClick = (e) => {
+                const link = e.target.closest('a');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    const info = parseAnchor(href);
+                    if (info) {
+                        e.preventDefault();
+                        if (info.type === 'category') {
+                            searchCategory(info.name);
+                        } else if (info.type === 'n_diary') {
+                            fetchSameDayDiary(info.dateStr);
+                        } else if (info.type === 'range') {
+                            loadDateRange(info.start, info.end);
+                        } else {
+                            smartJump(info.y, info.m, info.d, info.id, true);
+                        }
+                    }
+                }
+            };
+
+            const searchCategory = async (category) => {
+                loading.value = true;
+                currentCategory.value = category;
+                try {
+                    const res = await fetch(`./api/category?q=${encodeURIComponent(category)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        categoryResults.value = data.results;
+                        viewMode.value = 'category';
+                    }
+                } catch (e) { error.value = e.message; }
+                finally { loading.value = false; }
+            };
+
+            const clearCategorySearch = () => { viewMode.value = 'diary'; };
+
+            const performSearch = async () => {
+                if (!searchQuery.value) return;
+                loading.value = true;
+                lastSearchQuery.value = searchQuery.value;
+                try {
+                    const params = new URLSearchParams({ q: searchQuery.value, case_sensitive: isCaseSensitive.value });
+                    const res = await fetch(`./api/search?${params.toString()}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        searchResults.value = data.results;
+                        viewMode.value = 'search'; 
+                    }
+                } catch (e) { error.value = e.message; }
+                finally { loading.value = false; }
+            };
+
+            const clearSearch = () => { viewMode.value = 'diary'; searchQuery.value = ''; };
+
+            const goDateRange = async () => {
+                const y = navYear.value;
+                const m = pad(navMonth.value);
+                const range = String(navRange.value);
+                let startDay, endDay;
+                if (range === 'all') { startDay = '01'; endDay = '31'; }
+                else if (range === '1') { startDay = '01'; endDay = '10'; }
+                else if (range === '11') { startDay = '11'; endDay = '20'; }
+                else { startDay = '21'; endDay = '31'; }
+                const startStr = `${y}${m}${startDay}`;
+                const endStr = `${y}${m}${endDay}`;
+                window.location.hash = `#${startStr}#${endStr}`;
+            };
+
+            const changeMonth = (diff) => {
+                let m = calendarMonth.value + diff;
+                let y = calendarYear.value;
+                if (m > 12) { m = 1; y++; }
+                if (m < 1) { m = 12; y--; }
+                calendarMonth.value = m;
+                calendarYear.value = y;
+                fetchCalendarAvailability();
+                navYear.value = y;
+                navMonth.value = m;
+            };
+
+            const getDayStyle = (day, idx) => {
+                if(!day) return {};
+                const style = {};
+                if (idx === 0) style.color = 'red';
+                if (idx === 6) style.color = 'blue';
+                const today = new Date();
+                if (day === today.getDate() && calendarMonth.value === today.getMonth() + 1 && calendarYear.value === today.getFullYear()) {
+                    style.fontWeight = 'bold';
+                    style.backgroundColor = '#ffffcc';
+                }
+                return style;
+            };
+
+            const toggleConfig = () => showConfig.value = !showConfig.value;
+            const copyRuri = () => {
+                navigator.clipboard.writeText(currentRuriValue.value).then(() => alert('コピーしました'));
+            };
+
+            const clearCache = async () => {
+                if(!confirm('キャッシュを全消去して再構築しますか？')) return;
+                processing.value = true;
+                adminMessage.value = '処理中...';
+                try {
+                    const res = await fetch('./api/cache/all', { method: 'DELETE' });
+                    const data = await res.json();
+                    adminMessage.value = `完了: ${data.count}ファイルを削除しました。`;
+                } catch(e) { adminMessage.value = 'エラー: ' + e.message; }
+                finally { processing.value = false; }
+            };
+
+            const rebuildSearch = async () => {
+                if(!confirm('検索用データベースを再構築しますか？')) return;
+                processing.value = true;
+                adminMessage.value = 'インデックス作成中...';
+                try {
+                    const res = await fetch('./api/search/rebuild', { method: 'POST' });
+                    if (!res.ok) throw new Error(res.statusText);
+                    const data = await res.json();
+                    adminMessage.value = `完了: ${data.count} 件をインデックスしました。`;
+                } catch(e) { adminMessage.value = 'エラー: ' + e.message; }
+                finally { processing.value = false; }
+            };
+            
+            const openPostModal = () => {
+                showConfig.value = false;
+                showPostModal.value = true;
+            };
+            
+            const submitEntry = async () => {
+                if (!postPassword.value) { alert('パスワードを入力してください'); return; }
+                processing.value = true;
+                postMessage.value = '';
+                try {
+                    const payload = {
+                        ruri: currentRuriValue.value,
+                        password: postPassword.value,
+                        date: postDate.value,
+                        category: postCategory.value,
+                        content: postContent.value
+                    };
+                    const res = await fetch('./api/entry', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        postStatus.value = 'success';
+                        postMessage.value = '投稿しました！';
+                        setTimeout(() => {
+                            showPostModal.value = false;
+                            postMessage.value = '';
+                            location.reload(); 
+                        }, 1500);
+                    } else {
+                        postStatus.value = 'error';
+                        postMessage.value = 'エラー: ' + data.message;
+                    }
+                } catch(e) {
+                    postStatus.value = 'error';
+                    postMessage.value = '通信エラー: ' + e.message;
+                } finally { processing.value = false; }
+            };
+
+            const getNnhUrl = (dateStr) => {
+                if (!dateStr) return '#';
+                const parts = dateStr.split('/');
+                return (parts.length === 3) ? `https://nnh.to/${parts[1]}/${parts[2]}.html` : '#';
+            };
+
+            const handleScroll = () => { showScrollTop.value = window.scrollY > 200; };
+            const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+            onMounted(() => {
+                fetchPimAndParts();
+                fetchYears(); 
+                fetchRecentIndex(); 
+                fetchAuthStatus();
+                fetchCalendarAvailability().then(() => {
+                    if (!processHash(window.location.hash)) { fetchDiary(false); }
+                });
+                window.addEventListener('hashchange', () => { processHash(window.location.hash); });
+                window.addEventListener('scroll', handleScroll);
+            });
+
+            onUnmounted(() => { window.removeEventListener('scroll', handleScroll); });
+
+            return {
+                diaryList, indexList, pim, parts,
+                calendarYear, calendarMonth, calendarDays, availableDays,
+                navYear, navMonth, navRange, yearList,
+                loading, error, showConfig, inputRuri, currentRuriValue,
+                processing, adminMessage, isAdmin, isValidUser,
+                viewMode, categoryResults, currentCategory,
+                searchQuery, isCaseSensitive, lastSearchQuery, searchResults,
+                showScrollTop, scrollToTop, showSearchHelp, toggleSearchHelp,
+                showPostModal, postDate, postCategory, postContent, postPassword, postMessage, postStatus,
+                loginRuri, regenerateRuri, copyRuri, clearCache, rebuildSearch, openPostModal, submitEntry,
+                getDayHref, isSelectedDay,
+                jumpToToday, handleGlobalClick, changeMonth, goDateRange,
+                performSearch, clearSearch, searchCategory, clearCategorySearch,
+                renderMarkdown, toggleConfig, getNnhUrl,
+                fetchSameDayDiary, fetchMonthDiary, getDayStyle, getSectionLabel
+            };
+        }
+    });
+
+    app.component('hnf-table', {
+        props: ['caption', 'rows', 'config'], // configを受け取るように変更
+        setup(props) {
+            const { computed } = Vue;
+            const renderCell = (text) => text ? DOMPurify.sanitize(marked.parseInline(text)) : '';
+            
+            // RTコマンドをスタイルや属性に変換
+            const tableStyle = computed(() => {
+                const c = props.config || {};
+                let s = {};
+                if (c.table_width) s.width = c.table_width.match(/^\d+$/) ? c.table_width + 'px' : c.table_width;
+                if (c.table_height) s.height = c.table_height.match(/^\d+$/) ? c.table_height + 'px' : c.table_height;
+                if (c.table_border) s.border = c.table_border + 'px solid #666';
+                return s;
+            });
+
+            const theadStyle = computed(() => {
+                const c = props.config || {};
+                let s = {};
+                if (c.thead_bgcolor) s.backgroundColor = c.thead_bgcolor;
+                return s;
+            });
+
+            const tbodyStyle = computed(() => {
+                const c = props.config || {};
+                let s = {};
+                if (c.tbody_bgcolor) s.backgroundColor = c.tbody_bgcolor;
+                return s;
+            });
+
+            const tableClass = computed(() => (props.config || {}).table_class || 'hnf-table');
+            const tindexSpan = computed(() => parseInt((props.config || {}).tindex_span || 0));
+
+            const tableData = computed(() => {
+                if (!props.rows || !props.rows.length) return { head: [], body: [] };
+                const rawRows = props.rows;
+                
+                // データがある最初の行を探す
+                let firstDataIndex = rawRows.findIndex(r => r.length > 0 && !r.every(c => !c || String(c).trim() === ''));
+                if (firstDataIndex === -1) return { head: [], body: [] };
+                
+                // 空行（ヘッダとボディの区切り）を探す
+                let separatorIndex = -1;
+                for (let i = firstDataIndex; i < rawRows.length; i++) {
+                    const isEmpty = rawRows[i].length === 0 || rawRows[i].every(c => !c || String(c).trim() === '');
+                    if (isEmpty) { separatorIndex = i; break; }
+                }
+                
+                let headRaw = [], bodyRaw = [];
+                if (separatorIndex !== -1) {
+                    headRaw = rawRows.slice(firstDataIndex, separatorIndex);
+                    bodyRaw = rawRows.slice(separatorIndex + 1).filter(r => r.length > 0 && !r.every(c => !c || String(c).trim() === ''));
+                } else {
+                    bodyRaw = rawRows.slice(firstDataIndex);
+                }
+                
+                const processGrid = (rows) => {
+                    let grid = rows.map((row, rIdx) => row.map((text, cIdx) => ({ text: String(text || ''), colspan: 1, rowspan: 1, visible: true, r: rIdx, c: cIdx })));
+                    let ownerMap = grid.map(row => row.map(cell => cell));
+                    for (let r = 0; r < grid.length; r++) {
+                        for (let c = 0; c < grid[r].length; c++) {
+                            const cell = grid[r][c];
+                            const text = cell.text.trim();
+                            if (text === '==') {
+                                if (c > 0) {
+                                    const owner = ownerMap[r][c - 1];
+                                    if (c > owner.c + owner.colspan - 1) owner.colspan += 1;
+                                    ownerMap[r][c] = owner;
+                                    cell.visible = false;
+                                } else { cell.text = ''; }
+                            } else if (text === '||') {
+                                if (r > 0) {
+                                    const owner = ownerMap[r - 1][c];
+                                    if (r > owner.r + owner.rowspan - 1) owner.rowspan += 1;
+                                    ownerMap[r][c] = owner;
+                                    cell.visible = false;
+                                } else { cell.text = ''; }
+                            }
+                        }
+                    }
+                    return grid;
+                };
+                return { head: processGrid(headRaw), body: processGrid(bodyRaw) };
+            });
+            return { tableData, renderCell, tableStyle, tableClass, theadStyle, tbodyStyle, tindexSpan };
+        },
+        template: `
+            <div class="table-responsive">
+                <table :class="tableClass" :style="tableStyle">
+                    <caption v-if="caption">{{ caption }}</caption>
+                    
+                    <thead v-if="tableData.head.length > 0" :style="theadStyle">
+                        <tr v-for="(row, rIdx) in tableData.head" :key="'h-'+rIdx">
+                            <template v-for="(cell, cIdx) in row">
+                                <th v-if="cell.visible" :colspan="cell.colspan>1?cell.colspan:null" :rowspan="cell.rowspan>1?cell.rowspan:null">
+                                    <span v-html="renderCell(cell.text)"></span>
+                                </th>
+                            </template>
+                        </tr>
+                    </thead>
+                    
+                    <tbody :style="tbodyStyle">
+                        <tr v-for="(row, rIdx) in tableData.body" :key="'b-'+rIdx">
+                            <template v-for="(cell, cIdx) in row">
+                                <template v-if="cell.visible">
+                                    <th v-if="cIdx < tindexSpan" :colspan="cell.colspan>1?cell.colspan:null" :rowspan="cell.rowspan>1?cell.rowspan:null" style="background-color: #f0f0f0;">
+                                        <span v-html="renderCell(cell.text)"></span>
+                                    </th>
+                                    <td v-else :colspan="cell.colspan>1?cell.colspan:null" :rowspan="cell.rowspan>1?cell.rowspan:null">
+                                        <span v-html="renderCell(cell.text)"></span>
+                                    </td>
+                                </template>
+                            </template>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    });
+
+    app.component('recursive-list', {
+        props: ['type', 'items'],
+        template: `
+            <component :is="type">
+                <template v-for="(item, idx) in items" :key="idx">
+                    <li v-if="typeof item === 'string'" v-html="renderMarkdown(item)"></li>
+                    <li v-else-if="item.type === 'ul' || item.type === 'ol'" style="list-style: none;"><recursive-list :type="item.type" :items="item.items"></recursive-list></li>
+                    <li v-else-if="item.type === 'text'" style="list-style: none;"><div v-html="renderMarkdown(item.content)"></div></li>
+                    <li v-else-if="item.type === 'dt'" style="list-style: none;" class="hnf-dt"><span style="color:#556b2f"></span> <span v-html="renderMarkdown(item.content)"></span></li>
+                    <li v-else-if="item.type === 'dd'" style="list-style: none;" class="hnf-dd"><span v-html="renderMarkdown(item.content)"></span></li>
+                    <li v-else-if="item.type === 'pre'" style="list-style: none;"><pre>{{ item.content }}</pre></li>
+                    
+                    <li v-else-if="item.type === 'raw'" style="list-style: none;" v-html="item.content"></li>
+                </template>
+            </component>
+        `,
+        methods: { renderMarkdown }
+    });
+
+    app.mount('#app');
+</script>
+</body>
+</html>

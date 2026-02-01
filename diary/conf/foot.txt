@@ -1,0 +1,4 @@
+<div class="text-center">
+    <p>Copyright (C) 2026 Hyper Nikki System Reborn</p>
+    <address>Contact: hnsReborn</address>
+</div>

@@ -1,0 +1,2 @@
+family: RURI_SAMPLE_USER
+friends: RURI_FRIEND_SAMPLE

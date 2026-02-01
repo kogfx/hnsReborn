@@ -1,0 +1,5 @@
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <span>hns Reborn V1.0</span>
+  <span>|<a id="nav-today" href="#">Today</a>|</span>
+</div>
+

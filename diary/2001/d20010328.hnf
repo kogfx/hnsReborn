@@ -1,0 +1,185 @@
+TENKI 曇のち晴
+BASHO 札幌
+TAIJU 65.5
+OK
+
+CAT リリース
+NEW hns Reborn Version 1.0
+hns Rebornは、Hypper Nikki Systemの表記であるhnfを現代風の技術で閲覧するためのスクリプトです。
+
+HNFの書式を全て網羅されていません。
+~
+足りない機能はご自分で追加してください。
+~
+（私も必要になったら追加します）
+
+SUB オリジナルとの違い、移行方法
+UL
+LI 文字コードはUTF-8
+LI migrate_to_utf8.rbがあるので使ってみて
+LI テーマとかはないので、public/index.htmlを自分で編集して。書式は何で良いと思うが、以下のindex.html(bootstrap.html)はVue.jpを使用している。
+/UL
+
+CAT サンプル
+NEW 日記のサンプル
+これは日記のサンプルです．ファイル名は d20010328.hnf です．
+通常 ~/diary_utf8/2001/ にあります．
+
+SUB サブタイトルのテスト
+このようにサブタイトルを記述することもできます。
+LINK https://www.google.com Google
+このようにリンクも張れます．
+URLコマンドを使えば，
+URL https://www.google.com Google
+と URL を明示できます．
+
+SUB フォントの装飾
+STRIKE STRIKE
+や
+FONT color red 赤い文字
+などの表現も可能です．
+
+SUB リスト
+UL
+LI あいうえお
+LI かきくけこ
+LI さしすせそ
+/UL
+のようなリストや
+OL
+LI たちつてと
+LI なにぬねの
+LI はひふへほ~
+まみむめも
+/OL
+番号付きのリストも使えます．
+
+SUB 脚注
+FNコマンド
+FN
+Foot Note の略で脚注のことです．
+/FN
+FN
+コマンドの詳細は添付のドキュメントをご覧下さい．
+/FN
+も実装されています．
+難解なウェブ日記には脚注を付けることができます。
+
+LNEW http://www.h14m.org/ ハイパー日記システム
+このようにタイトルにリンクを入れることも可能です。
+
+LSUB http://www.h14m.org/ ハイパー日記システム
+サブ・タイトルからもリンクできます。
+
+NEW 日記管理ページ
+LINK admini.cgi 日記管理ページ
+で日記の様々な管理を行えます。
+
+NEW マーク
+以下のマーク(MARK)が標準で利用可能です．~
+
+MARK (^^)
+MARK (-_-)
+MARK (^^;
+MARK (;_;)
+MARK (T_T)
+MARK v(^^)
+MARK m(__)m
+MARK !!
+MARK ??
+MARK !? 
+MARK (笑)
+MARK :-)
+MARK :-(
+MARK :-P
+MARK φ(._.)
+
+~
+これらのマークは UTF-8のフォントです。
+
+NEW RTの例
+SUB ちょっと複雑な表
+RT
+ caption   = ちょっと複雑な表
+ delimiter = :
+
+ A :  B :  C : == :  D :  E
+
+ 1 :  2 :  3 :  4 :  5 :  6
+ 7 : == : || :  8 : == :  9
+10 : 11 : 12 : || : == : 13
+/RT
+PRE
+RT
+ caption   = ちょっと複雑な表
+ delimiter = :
+
+ A :  B :  C : == :  D :  E
+
+ 1 :  2 :  3 :  4 :  5 :  6
+ 7 : == : || :  8 : == :  9
+10 : 11 : 12 : || : == : 13
+/RT
+/PRE
+SUB RT拡張コマンド
+RT
+ caption       = RT拡張コマンド
+ delimiter     = :
+ tbody_bgcolor = white
+ table_border  = 2
+ tindex_span   = 3
+
+ コマンド :  ==  :       ==      : 機能
+
+ TABLE全体:  ==  : caption       : 表の題名
+    ||    :  ==  : delimiter     : デリミタ
+    ||    :  ==  : table_class   : スタイルシート指定
+    ||    :  ==  : table_border  : 枠線の幅(ピクセル)
+    ||    :  ==  : table_width   : テーブルの幅(ピクセルまたは%)
+    ||    :  ==  : table_height  : テーブルの高さ(ピクセルまたは%)
+    ||    :  ==  : table_frame   : 外枠の表示方法 (void,above,below,hsides,vsides,lhs,rhs,box,border)
+    ||    :  ==  : table_rules   : 内側罫線の表示方法 (none,groups,rows,cols,all)
+  THEAD部 :  ==  : thead_class   : スタイルシート指定
+    ||    :  ==  : thead_bgcolor : BGCOLOR 指定
+  TBODY部 :見出し: tindex_span   : 見出しとしてグループ化する列数(def=0)
+    ||    :  ||  : tindex_class  : スタイルシート指定
+    ||    :  ||  : tindex_bgcolor: BGCOLOR 指定
+    ||    :  ||  : tindex_width  : セルの幅(ピクセル)
+    ||    :  ||  : tindex_align  : セル配置(left,center,right)
+    ||    : 本体 : tbody_bgcolor : BGCOLOR 指定
+    ||    :  ||  : tbody_class   : スタイルシート指定
+    ||    :  ||  : tbody_width   : セルの幅(ピクセル)
+    ||    :  ||  : tbody_align   : セル配置(left,center,right)
+/RT
+PRE
+RT
+ caption       = RT拡張コマンド
+ delimiter     = :
+ tbody_bgcolor = white
+ table_border  = 2
+ tindex_span   = 3
+
+ コマンド :  ==  :       ==      : 機能
+
+ TABLE全体:  ==  : caption       : 表の題名
+    ||    :  ==  : delimiter     : デリミタ
+    ||    :  ==  : table_class   : スタイルシート指定
+    ||    :  ==  : table_border  : 枠線の幅(ピクセル)
+    ||    :  ==  : table_width   : テーブルの幅(ピクセルまたは%)
+    ||    :  ==  : table_height  : テーブルの高さ(ピクセルまたは%)
+    ||    :  ==  : table_frame   : 外枠の表示方法 (void,above,below,hsides,vsides,lhs,rhs,box,border)
+    ||    :  ==  : table_rules   : 内側罫線の表示方法 (none,groups,rows,cols,all)
+  THEAD部 :  ==  : thead_class   : スタイルシート指定
+    ||    :  ==  : thead_bgcolor : BGCOLOR 指定
+  TBODY部 :見出し: tindex_span   : 見出しとしてグループ化する列数(def=0)
+    ||    :  ||  : tindex_class  : スタイルシート指定
+    ||    :  ||  : tindex_bgcolor: BGCOLOR 指定
+    ||    :  ||  : tindex_width  : セルの幅(ピクセル)
+    ||    :  ||  : tindex_align  : セル配置(left,center,right)
+    ||    : 本体 : tbody_bgcolor : BGCOLOR 指定
+    ||    :  ||  : tbody_class   : スタイルシート指定
+    ||    :  ||  : tbody_width   : セルの幅(ピクセル)
+    ||    :  ||  : tbody_align   : セル配置(left,center,right)
+/RT
+/PRE
+

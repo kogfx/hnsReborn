@@ -1,0 +1,22 @@
+# --- Configuration & Secrets ---
+config.yml
+.env
+
+# --- Data & Database ---
+# diary/ はサンプルを含むため全除外せず、運用中のデータのみ除外したいが、
+# git管理下にあるファイルはgitignoreの影響を受けないので、
+# ここでは「未知のデータ」を除外する意図で記述
+data/
+*.db
+*.db-journal
+
+# --- System & Logs ---
+.DS_Store
+Thumbs.db
+*.log
+tmp/
+
+# --- Ruby / Bundler ---
+vendor/
+.bundle/
+Gemfile.lock.local

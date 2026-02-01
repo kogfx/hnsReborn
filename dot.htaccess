@@ -1,0 +1,15 @@
+Options +ExecCGI
+AddHandler cgi-script .cgi
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 実在するファイルやディレクトリはそのまま表示
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # ★修正: /$1 を追加して、パス情報(PATH_INFO)をCGIに渡す
+    RewriteRule ^(.*)$ index.cgi/$1 [QSA,L]
+</IfModule>

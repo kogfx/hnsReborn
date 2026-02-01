@@ -1,0 +1,130 @@
+#!/bin/bash
+set -e # エラーが発生したら即座に停止
+
+#
+# = deploy-xrea
+# XREAサーバーへのデプロイ・セットアップを行うスクリプト
+#
+# = Usage:
+#  $ ./deploy-xrea <server-host> <username> <deploy-dir>
+#
+#  Example:
+#  $ ./deploy-xrea s999.xrea.com myname my-diary.com
+#    -> Installs to ~/public_html/my-diary.com/
+#
+
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <server-host> <username> <deploy-dir>"
+    echo "Example: $0 s999.xrea.com myuser diary.example.com"
+    exit 1
+fi
+
+SERVER=$1
+USER=$2
+TARGET_DIR=$3
+
+echo "=== Deploying to ${SERVER}:public_html/${TARGET_DIR}/ ==="
+
+# 転送するファイルリストを作成
+# (release_files.txt に準拠しつつ、開発用ファイルを除外)
+cat <<EOF > /tmp/hns_filelist
+app.rb
+auth_manager.rb
+hnf_parser.rb
+indexer.rb
+post_hnf.rb
+gcal_sync.rb
+index.cgi
+Gemfile.cgi
+dot.htaccess
+public/
+EOF
+
+# XREA用の config.yml を生成
+# (セキュリティのため、ローカルの設定ではなくサーバー専用のパスを書き込む)
+cat <<EOF > /tmp/hns_config_xrea.yml
+# config.yml for XREA
+diary_root: /virtual/${USER}/diary
+cache_root: /virtual/${USER}/diary/cache
+db_path:    /virtual/${USER}/diary/search.db
+
+# PIM設定
+pim_schedule: /virtual/${USER}/diary/repeat
+pim_todo:     /virtual/${USER}/diary/todo
+pim_link:     /virtual/${USER}/diary/link
+
+# テンプレート設定
+file_head: /virtual/${USER}/diary/conf/head.txt
+file_foot: /virtual/${USER}/diary/conf/foot.txt
+
+# 表示設定
+days_shown: 10
+index_days: 14
+port: 4567
+
+# テーマ設定 (カレンダーの制限などはここで調整)
+theme: bootstrap
+
+# Googleカレンダー連携 (必要に応じてサーバー上で編集してください)
+calendars:
+  # holidays:
+  #   url: "..."
+EOF
+
+# --- 1. アプリケーション本体の転送 ---
+echo "Syncing application files..."
+rsync -av --files-from=/tmp/hns_filelist ./ "${SERVER}:public_html/${TARGET_DIR}/"
+
+# .htaccess のリネーム (dot.htaccess -> .htaccess)
+ssh "${SERVER}" "mv public_html/${TARGET_DIR}/dot.htaccess public_html/${TARGET_DIR}/.htaccess 2>/dev/null || true"
+
+# --- 2. 設定ファイルの転送 ---
+echo "Syncing config.yml..."
+rsync -av /tmp/hns_config_xrea.yml "${SERVER}:public_html/${TARGET_DIR}/config.yml"
+
+# --- 3. データディレクトリ(~/diary) の転送 ---
+# ※ 既存のデータを上書きしないよう、ディレクトリ構造のみ転送するか、
+#    初期セットアップ時のみ実行するよう注意が必要ですが、
+#    ここではひな形(conf等)を同期し、重要なデータは上書きされないよう配慮します。
+echo "Syncing data directory (~/diary)..."
+rsync -av ./diary/ "${SERVER}:diary/"
+
+# --- 4. サーバー側でのセットアップ ---
+echo "Running remote setup..."
+ssh "${SERVER}" /bin/bash <<REMOTE_COMMAND
+  set -e
+  
+  # Gemのインストール (Gemfile.cgiを使用)
+  cd "public_html/${TARGET_DIR}"
+  bundle config set --local path 'vendor/bundle'
+  bundle config set --local without 'development test'
+  bundle install --gemfile=Gemfile.cgi
+
+  # パーミッション設定
+  chmod 755 index.cgi
+  chmod 755 .
+  
+  # データディレクトリの権限設定 (外部から見えないように)
+  cd ~/diary
+  mkdir -p cache
+  chmod 700 .
+  chmod 700 conf
+  
+  # 設定ファイルとデータファイルの権限
+  # (存在する場合のみ実行)
+  [ -f repeat ] && chmod 600 repeat
+  [ -f todo ]   && chmod 600 todo
+  [ -f link ]   && chmod 600 link
+  if [ -d conf ]; then
+    chmod 600 conf/admin_pass.txt 2>/dev/null || true
+    chmod 600 conf/auth_ruri.txt 2>/dev/null || true
+    chmod 600 conf/group.txt 2>/dev/null || true
+  fi
+
+  echo "Setup completed successfully."
+REMOTE_COMMAND
+
+# 一時ファイルの削除
+rm -f /tmp/hns_filelist /tmp/hns_config_xrea.yml
+
+echo "=== Deployment Finished! ==="

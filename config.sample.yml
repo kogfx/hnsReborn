@@ -1,0 +1,52 @@
+# config.yml
+<%
+  base_dir = File.join(ENV["HOME"], "diary_utf8")
+%>
+
+diary_root: <%= base_dir %>
+cache_root: <%= File.join(base_dir, "cache") %>
+
+# 全文検索用データベース (diary_rootの下)
+db_path: <%= File.join(base_dir, "search.db") %>
+
+# PIMファイルの場所 (HNS標準のパス)
+pim_schedule: <%= File.join(base_dir, "repeat") %>
+pim_todo:     <%= File.join(base_dir, "todo") %>
+pim_link:     <%= File.join(base_dir, "link") %>
+
+# header/footerの場所
+file_head: <%= File.join(base_dir, "conf/head.txt") %>
+file_foot: <%= File.join(base_dir, "conf/foot.txt") %>
+
+# 表示設定
+days_shown: 10      # 左側（本文表示）の日数
+index_days: 14      # 右側（インデックス表示）の日数
+port: 4567
+
+# サイトのテーマ設定 (publicフォルダ内の .html ファイル名を指定)
+# 例: bootstrap -> public/bootstrap.html を使用
+theme:
+  name: bootstrap
+  visible_calendars:
+    - private
+    - work
+
+# カレンダー設定 (URLとスタイルを統合)
+# 識別名:
+#   url: "iCal形式のURL"
+#   style: "CSSスタイル" (省略可能)
+calendars:
+  private:
+    url: "https://calendar.google.com/calendar/ical/YOUR_PRIVATE_TOKEN/basic.ics"
+    style: "color: #d9534f; font-weight: bold;"  # 赤太字
+    group: "HOME"
+  
+  work:
+    url: "https://calendar.google.com/calendar/ical/YOUR_PRIVATE_TOKEN/basic.ics"
+    style: "color: #337ab7; background-color: #e6f2ff;" # 青文字+背景
+    group: "HOME"
+
+  holidays:
+    url: "https://calendar.google.com/calendar/ical/YOUR_PRIVATE_TOKEN/basic.ics"
+    # style を省略すると標準の表示になります
+
