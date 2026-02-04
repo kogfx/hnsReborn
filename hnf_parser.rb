@@ -363,6 +363,10 @@ class HnfParser
       visibility: @current_group ? 'restricted' : 'public',
       anchor_id: anchor_id
     }
+    
+    @current_group = nil 
+    @current_cat = nil
+
     @stack = [@current_section[:items]]
     reset_mode
   end
