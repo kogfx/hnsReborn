@@ -56,14 +56,19 @@ calendars_config.each do |source_name, data|
       if start_dt.is_a?(Icalendar::Values::Date) || start_dt.is_a?(Date)
         d = start_dt
         time_str = ""
+        # 比較(ソート)用に、その日の 00:00:00 (ローカル時間) の Time オブジェクトを作成する
+        sort_key = Time.local(d.year, d.month, d.day, 0, 0, 0)
       else
-        d = start_dt.to_date
-        time_str = start_dt.strftime("%H:%M ")
+        local_time = start_dt.to_time.getlocal("+09:00")
+        sort_key = local_time
+        d = local_time.to_date
+        time_str = local_time.strftime("%H:%M ")
       end
 
       summary = event.summary.to_s.strip
       line = "#{d.month}/#{d.day} #{time_str}#{summary}"
-      schedules_by_year[d.year] << [start_dt, line]
+      
+      schedules_by_year[d.year] << [sort_key, line]
     end
 
     schedules_by_year.each do |year, events|
